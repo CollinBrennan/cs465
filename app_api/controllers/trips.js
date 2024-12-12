@@ -15,7 +15,7 @@ const tripsList = async (req, res) => {
 // add a new trip
 // response must include HTML status code and JSON message
 const tripsAddTrip = async (req, res) => {
-  const newTrip = new Trip({
+  const newtrip = new Trip({
     code: req.body.code,
     name: req.body.name,
     length: req.body.length,
@@ -26,9 +26,13 @@ const tripsAddTrip = async (req, res) => {
     description: req.body.description,
   })
 
-  const q = await newTrip.save()
-  if (!q) return res.status(404).json(err)
-  else return res.status(200).json(q)
+  const q = await newtrip.save()
+
+  if (!q) {
+    return res.status(400).json(err) // no data
+  } else {
+    return res.status(201).json(q) // successfully add trip to database
+  }
 }
 
 // GET: /trips/:tripCode
@@ -44,22 +48,30 @@ const tripsFindByCode = async (req, res) => {
 // updates existing trip
 // must include HTML status code and JSON message
 const tripsUpdateTrip = async (req, res) => {
-  const q = await Model.findOneAndUpdate(
-    { code: req.params.tripCode },
-    {
-      code: req.body.code,
-      name: req.body.name,
-      length: req.body.length,
-      start: req.body.start,
-      resort: req.body.resort,
-      perPerson: req.body.perPerson,
-      image: req.body.image,
-      description: req.body.description,
-    }
-  ).exec()
+  try {
+    const q = await Model.findOneAndUpdate(
+      { code: req.params.tripCode },
+      {
+        code: req.body.code,
+        name: req.body.name,
+        length: req.body.length,
+        start: req.body.start,
+        resort: req.body.resort,
+        perPerson: req.body.perPerson,
+        image: req.body.image,
+        description: req.body.description,
+      }
+    ).exec()
 
-  if (!q) return res.status(404).json(err)
-  else return res.status(201).json(q)
+    if (!q) {
+      return res.status(404).json({ message: 'Trip not found' }) // no data
+    } else {
+      return res.status(200).json(q) // update document successfully
+    }
+  } catch (error) {
+    console.error('Error updating trip:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
 }
 
 module.exports = {
