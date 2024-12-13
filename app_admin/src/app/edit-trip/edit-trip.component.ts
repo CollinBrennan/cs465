@@ -83,7 +83,7 @@ export class EditTripComponent implements OnInit {
         },
 
         error: (error) => {
-          console.log('Error: ' + error);
+          console.log('Error: ' + error.message);
         },
       });
     }
