@@ -22,6 +22,7 @@ export class EditTripComponent implements OnInit {
   trip!: Trip;
   submitted = false;
   message: string = '';
+  tripCode: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -30,8 +31,8 @@ export class EditTripComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    let tripCode = localStorage.getItem('tripCode');
-    if (!tripCode) {
+    this.tripCode = localStorage.getItem('tripCode');
+    if (!this.tripCode) {
       alert("Something wrong, couldn't find where I stashed tripCode");
       this.router.navigate(['']);
       return;
@@ -49,7 +50,7 @@ export class EditTripComponent implements OnInit {
       description: ['', Validators.required],
     });
 
-    this.tripDataService.getTrip(tripCode).subscribe({
+    this.tripDataService.getTrip(this.tripCode).subscribe({
       next: (value) => {
         this.trip = value[0];
 
@@ -63,7 +64,7 @@ export class EditTripComponent implements OnInit {
           start: formattedStart,
         });
         if (value.length === 0) this.message = 'No Trip Retrieved!';
-        else this.message = 'Trip:' + tripCode + ' retrieved.';
+        else this.message = 'Trip:' + this.tripCode + ' retrieved.';
       },
       error: (error) => {
         console.log('Error: ' + error);
@@ -74,18 +75,20 @@ export class EditTripComponent implements OnInit {
   public onSubmit() {
     this.submitted = true;
 
-    if (this.editForm.valid) {
+    if (this.editForm.valid && this.tripCode) {
       // update existing record in database
-      this.tripDataService.updateTrip(this.editForm.value).subscribe({
-        next: (value) => {
-          console.log(value);
-          this.router.navigate(['']);
-        },
+      this.tripDataService
+        .updateTrip(this.tripCode, this.editForm.value)
+        .subscribe({
+          next: (value) => {
+            console.log(value);
+            this.router.navigate(['']);
+          },
 
-        error: (error) => {
-          console.log('Error: ' + error.message);
-        },
-      });
+          error: (error) => {
+            console.log('Error: ' + error.message);
+          },
+        });
     }
   }
 
